@@ -886,29 +886,35 @@
 
 		
 		async function build() {
-			if (!builderPath.value) return;
-
 			let path = builderPath.value.startsWith('/') ? builderPath.value.slice(1) : builderPath.value;
 			let body = null;
-			try {
-				body = JSON.stringify( JSON.parse( builderBody.value ) );
-			} catch (e) {
-				showError('Body Error:', 'Invalid JSON');
-				return;
+			if (builderBody.value) {
+				try {
+					body = JSON.stringify( JSON.parse( builderBody.value ) );
+				} catch (e) {
+					showError('Body Error:', 'Invalid JSON');
+					return;
+				}
 			}
 			await send(path, body);
 		}
 
 		async function send(path, body) {
 			const user = getUser(true);
-			await fetch(`${SERVER}/${path}`, {
+
+			const options = body ? {
 				method: 'POST',
 				credentials: 'include',
 				headers: {
 					'Content-Type': 'application/json'
 				},
 				body
-			})
+			} : {
+				method: 'GET',
+				credentials: 'include'
+			};
+
+			await fetch(`${SERVER}/${path}`, options)
 				.then(resp => resp.json())
 				.then(data => {
 					if (data.success !== true) {
