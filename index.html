@@ -430,7 +430,7 @@
 					background: var(--fg3);
 				}
 			}
-			h1, h2, p:not(.logo) {
+			h1, h2, p {
 				width: 50%;
 				box-sizing: border-box;
 
@@ -446,10 +446,10 @@
 					background: #fff5;
 				}
 			}
-			p:not(.logo) {
+			p {
 				font-size: calc(1.5 * var(--u));
+				width: 100%;
 			}
-
 		}
 
 		#error {
@@ -677,6 +677,14 @@
 		<input type="text" id="rqb-path" placeholder="Path">
 		<textarea id="rqb-body" rows="5" cols="10"></textarea>
 		<button onclick="build()">Go</button>
+		<br><p></p><br>
+		<p>-- API Reference --</p>
+		<p style="text-align: left">&nbsp;&nbsp;&nbsp;&nbsp;hash - text</p>
+		<p style="text-align: left">&nbsp;&nbsp;signup - new-user, level, password</p>
+		<p style="text-align: left">channels</p>
+		<p style="text-align: left">&nbsp;&nbsp;&nbsp;&nbsp;edit - edits: { total, level, read, write, filter, chat }</p>
+		<p style="text-align: left">&nbsp;&nbsp;&nbsp;&nbsp;nuke</p>
+		<p style="text-align: left">&nbsp;&nbsp;&nbsp;stats</p>
 	</div>
 
 	<div id="error" hidden>
@@ -913,7 +921,7 @@
 				.catch(e => showError('Network Error:', e));
 		}
 
-		getUser(true);
+		// getUser(true);
 	</script>
 </body>
 </html>
