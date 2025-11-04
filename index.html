@@ -873,17 +873,6 @@
 		[builder, builderPath, builderBody].forEach(ie => ie.addEventListener('focus', e => { getUser(true); }));
 		document.addEventListener('keydown', e => {
 			if (e.key === 'Escape') burger(menuWrapper.dataset.active == 0 ? 1 : 0)
-			if (menuWrapper.dataset.active == 0) {
-				if (
-					e.key !== 'Tab' &&
-					e.key !== 'Escape'
-				) {
-					if (e.key === 'Enter' || e.key === 'Space') {
-						e.preventDefault();	
-					}
-					builderPath.focus();
-				}
-			}
 		});
 
 		
