@@ -903,10 +903,11 @@
 			})
 				.then(resp => resp.json())
 				.then(data => {
-					if (data.success !== true) {
+					if (data.success && data.success !== true) {
 						showError('Client Error:', data.error);
 					} else {
 						showAlert('Sent!', true);
+						console.log(data);
 					}
 				})
 				.catch(e => showError('Network Error:', e));
