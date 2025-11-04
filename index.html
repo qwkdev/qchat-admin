@@ -868,32 +868,18 @@
 		const builderPath = document.getElementById('rqb-path');
 		const builderBody = document.getElementById('rqb-body');
 
-		[builderPath, builderBody].forEach(ie => ie.addEventListener('keydown', e => {
-			if (e.key === 'Enter') {
-				if (e.shiftKey) return;
-				else {
-					e.preventDefault();
-					addPending(msgInput.value, session.level, getUser(true));
-					send(msgInput.value);
-					msgInput.value = '';
-				}
-			}
-		}));
-		[builder, builderPath, builderBody].forEach(ie => ie.addEventListener('focus', e => {
-			getUser(true);
-		}));
+		[builder, builderPath, builderBody].forEach(ie => ie.addEventListener('focus', e => { getUser(true); }));
 		document.addEventListener('keydown', e => {
 			if (e.key === 'Escape') burger(menuWrapper.dataset.active == 0 ? 1 : 0)
 			if (menuWrapper.dataset.active == 0) {
 				if (
 					e.key !== 'Tab' &&
-					e.key !== 'Escape' &&
-					e.target !== msgInput
+					e.key !== 'Escape'
 				) {
 					if (e.key === 'Enter' || e.key === 'Space') {
 						e.preventDefault();	
 					}
-					msgInput.focus();
+					builderPath.focus();
 				}
 			}
 		});
