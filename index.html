@@ -676,7 +676,7 @@
 	<div id="builder">
 		<input type="text" id="rqb-path" placeholder="Path">
 		<textarea id="rqb-body" rows="5" cols="10"></textarea>
-		<button id="rqb-go">Go</button>
+		<button onclick="build()">Go</button>
 	</div>
 
 	<div id="error" hidden>
@@ -913,6 +913,8 @@
 				.then(data => {
 					if (data.success !== true) {
 						showError('Client Error:', data.error);
+					} else {
+						showAlert('Sent!', true);
 					}
 				})
 				.catch(e => showError('Network Error:', e));
