@@ -95,7 +95,9 @@
 			b {
 				background: linear-gradient(to bottom, var(--c) 20%, var(--c2));
 				background-clip: text;
-				color: transparent;
+				-webkit-background-clip: text;
+				color: transparent !important;
+				-webkit-text-fill-color: transparent !important;
 			}
 			.version {
 				color: var(--grey);
@@ -133,7 +135,7 @@
 			top: 0;
 			left: -100vw;
 			width: 100vw;
-			height: 100dvh;
+			height: 100vh;
 
 			z-index: 50;
 
@@ -266,17 +268,23 @@
 		.lvl4 {
 			background: linear-gradient(to bottom, var(--c) 20%, var(--c2));
 			background-clip: text;
+			-webkit-background-clip: text;
 			color: transparent !important;
+			-webkit-text-fill-color: transparent !important;
 		}
 		.lvl3 {
 			background: linear-gradient(to bottom, #02d 20%, #0cf);
 			background-clip: text;
+			-webkit-background-clip: text;
 			color: transparent !important;
+			-webkit-text-fill-color: transparent !important;
 		}
 		.lvl2 {
 			background: linear-gradient(to bottom, #f80 20%, #ff0);
 			background-clip: text;
+			-webkit-background-clip: text;
 			color: transparent !important;
+			-webkit-text-fill-color: transparent !important;
 		}
 
 		#chats {
@@ -287,6 +295,7 @@
 
 			width: calc(100vw - var(--chat-margin) * 2);
 			height: calc(100vh - (16.5 * var(--u)));
+			height: calc(100dvh - (16.5 * var(--u)));
 
 			padding-bottom: calc(1.25 * var(--u));
 			box-sizing: border-box;
@@ -380,6 +389,7 @@
 
 			width: calc(100vw - var(--chat-margin) * 2);
 			height: calc(100vh - (9.5 * var(--u)));
+			height: calc(100dvh - (9.5 * var(--u)));
 
 			z-index: 10;
 
@@ -543,6 +553,7 @@
 
 		#alert {
 			width: 100vw;
+			height: 100vh;
 			height: 100dvh;
 
 			position: absolute;
