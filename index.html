@@ -724,6 +724,47 @@ body {
 	font-family: Arial;
 	color: #fff;
 }
+#alert #alert-box #alert-input {
+	width: 100%;
+	margin-top: calc(2 * var(--u));
+	display: grid;
+	grid-template-columns: auto auto;
+	align-items: center;
+	gap: calc(1 * var(--u));
+
+	p {
+		margin: 0;
+		font-size: calc(2 * var(--u));
+		font-weight: 500;
+		font-family: Arial;
+		color: #fff;
+	}
+	&[hidden] {
+		display: none;
+	}
+}
+#alert #alert-box input {
+	width: 100%;
+	height: calc(5 * var(--u));
+	box-sizing: border-box;
+	padding-left: calc(1.25 * var(--u));
+	
+	background: var(--fg);
+	border: var(--border-width) solid var(--border);
+	border-radius: var(--br);
+
+	font-family: monospace;
+	font-size: calc(2 * var(--u));
+	color: #fff;
+
+	&:focus {
+		outline: none;
+		border-color: var(--c);
+	}
+	&::selection {
+		background: var(--c);
+	}
+}
 #alert #alert-box #alert-options {
 	display: flex;
 	width: 100%;
@@ -811,7 +852,7 @@ body {
 		</button>
 	</div>
 
-	<div id="main" data-list="1">
+	<div id="main" data-list="0">
 		<div id="select">
 			<div id="active"></div>
 			<button onclick="list(0)">Users</button>
@@ -821,7 +862,7 @@ body {
 			<div id="users">
 				<div class="item">
 					<div class="div"></div>
-					<button class="btn action new">Create New</button>
+					<button class="btn action new" onclick="euNew()">Create New</button>
 					<div class="div"></div>
 				</div>
 				<div class="item template">
@@ -845,7 +886,7 @@ body {
 			<div id="channels">
 				<div class="item">
 					<div class="div"></div>
-					<button class="btn action new">Create New</button>
+					<button class="btn action new" onclick="ecNew()">Create New</button>
 					<div class="div"></div>
 				</div>
 				<div class="item template">
@@ -882,6 +923,7 @@ body {
 	<dialog id="alert">
 		<div id="alert-box">
 			<p id="alert-text">Example</p>
+			<div id="alert-input" hidden></div>
 			<div id="alert-options">
 				<button class="btn" id="alert-cancel">CANCEL</button>
 				<button class="btn action" id="alert-ok">OK</button>
@@ -1031,22 +1073,33 @@ body {
 			}
 		}
 
+		function extractForm(parent) {
+			let resp = {};
+			parent.querySelectorAll('input').forEach(e => {
+				resp[e.dataset.name] = e.value;
+			});
+
+			return resp;
+		}
+
 		const alertModal = document.getElementById('alert');
 		const alertEle = {
 			text: document.getElementById('alert-text'),
 			options: document.getElementById('alert-options'),
 			cancel: document.getElementById('alert-cancel'),
-			ok: document.getElementById('alert-ok')
+			ok: document.getElementById('alert-ok'),
+			input: document.getElementById('alert-input')
 		}
 		alertModal.addEventListener('click', e => {
 			if (e.target === alertModal) alertModal.close();
 		});
-		function showAlert(html='Alert', ok=true, cancel=false) {
+		function showAlert(html='Alert', ok=true, cancel=false, form=null) {
 			alertEle.text.innerHTML = html;
 			if (typeof ok === 'function') {
 				alertEle.ok.onclick = function() {
 					alertModal.close();
-					ok();
+					if (alertEle.input.hidden) ok();
+					else ok(extractForm(alertEle.input));
 				}
 			} else alertEle.ok.onclick = () => alertModal.close();
 			if (typeof cancel === 'function') {
@@ -1059,6 +1112,24 @@ body {
 			alertEle.options.hidden = ok === false && cancel === false;
 			alertEle.ok.hidden = ok === false;
 			alertEle.cancel.hidden = cancel === false;
+
+			alertEle.input.innerHTML = '';
+			alertEle.input.hidden = !form;
+
+			if (form) {
+				Object.entries(form).forEach(([k, v]) => {
+					const newLabel = document.createElement('p');
+					newLabel.innerText = v;
+
+					const newInput = document.createElement('input');
+					newInput.type = 'text';
+					newInput.dataset.name = k;
+
+					alertEle.input.appendChild(newLabel);
+					alertEle.input.appendChild(newInput);
+				})
+			}
+
 			alertModal.showModal();
 		}
 
@@ -1154,6 +1225,21 @@ body {
 		function list(id) {
 			document.getElementById('main').dataset.list = id;
 		}
+
+
+		function euNew() {
+			showAlert('Test', _euNew, false, { u: 'Username', p: 'Password', l: 'Level' });
+		}
+		function _euNew(data) {
+			if (!(data.u && data.p && data.l && parseInt(data.l))) {
+				showError('Client Error:', 'Missing params');
+				return;
+			}
+
+			
+		}
+
+
 
 		if (getUser(true)) init();
 	</script>
