@@ -860,12 +860,12 @@ body {
 		</div>
 		<div id="lists">
 			<div id="users">
-				<div class="item">
+				<div class="init item">
 					<div class="div"></div>
 					<button class="btn action new" onclick="euNew()">Create New</button>
 					<div class="div"></div>
 				</div>
-				<div class="item template">
+				<div class="init item template">
 					<h1></h2>
 					<span>|</span>
 					<div class="num">
@@ -884,31 +884,31 @@ body {
 				</div>
 			</div>
 			<div id="channels">
-				<div class="item">
+				<div class="init item">
 					<div class="div"></div>
 					<button class="btn action new" onclick="ecNew()">Create New</button>
 					<div class="div"></div>
 				</div>
-				<div class="item template">
+				<div class="init item template">
 					<h1></h2>
 					<span>|</span>
 					<div class="num">
 						<h3>R</h3>
-						<button class="btn" onclick="ecRead(this, -1)">-</button>
+						<button class="btn" onclick="ecLevel(this, 0, -1)">-</button>
 						<p data-name="read"></p>
-						<button class="btn" onclick="ecRead(this, 1)">+</button>
+						<button class="btn" onclick="ecLevel(this, 0, 1)">+</button>
 						<span>|</span>
 						<h3>W</h3>
-						<button class="btn" onclick="ecWrite(this, -1)">-</button>
+						<button class="btn" onclick="ecLevel(this, 1, -1)">-</button>
 						<p data-name="write"></p>
-						<button class="btn" onclick="ecWrite(this, 1)">+</button>
+						<button class="btn" onclick="ecLevel(this, 1, 1)">+</button>
 					</div>
 					<span>|</span>
 					<h2></h2>
 					<span>|</span>
 					<div class="div"></div>
 					<span>|</span>
-					<button class="btn action2" data-name="filter" onclick="ecFilter(this)">F</button>
+					<button class="btn action2" data-name="filter" data-value="" onclick="ecFilter(this)">F</button>
 					<button class="btn action2" onclick="ecNuke(this)">[]</button>
 					<button class="btn action2" onclick="ecDelete(this)">Del</button>
 				</div>
@@ -1172,54 +1172,62 @@ body {
 		const channelList = document.getElementById('channels');
 		const userTemplate = userList.querySelector('.item.template');
 		const channelTemplate = channelList.querySelector('.item.template');
-		async function init() {
-			const users = await send('/dev/users');
-			const channels = await send('/dev/channels');
-			console.log(channels);
+		async function init(u=true, c=true) {
+			if (u) {
+				const users = await send('/dev/u');
+			
+				userList.querySelectorAll('#users > :not(.init)').forEach(e => e.remove());
+				Object.entries(users)
+					.sort(([a, [la]], [b, [lb]]) =>
+						lb - la || a.localeCompare(b)
+					)
+					.forEach(([user, data]) => {
+						const newUser = userTemplate.cloneNode(true);
+						newUser.classList.remove('template');
+						newUser.classList.remove('init');
+						newUser.dataset.id = user;
 
-			Object.entries(users)
-				.sort(([a, [la]], [b, [lb]]) =>
-					lb - la || a.localeCompare(b)
-				)
-				.forEach(([user, data]) => {
-					const newUser = userTemplate.cloneNode(true);
-					newUser.classList.remove('template');
-					newUser.dataset.id = user;
+						const name = newUser.querySelector('h1');
+						const level = newUser.querySelector('.num p');
+						name.classList = `lvl${data[0] || 0}`;
+						level.classList = `lvl${data[0] || 0}`;
+						name.innerText = user;
+						level.innerText = data[0];
 
-					const name = newUser.querySelector('h1');
-					const level = newUser.querySelector('.num p');
-					name.classList = `lvl${data[0] || 0}`;
-					level.classList = `lvl${data[0] || 0}`;
-					name.innerText = user;
-					level.innerText = data[0];
+						newUser.querySelector('h2').innerText = data[1];
+						userList.appendChild(newUser);
+					});
+			}
+			if (c) {
+				const channels = await send('/dev/c');
+				channelList.querySelectorAll('#channels > :not(.init)').forEach(e => e.remove());
+				Object.entries(channels)
+					.sort(([a, { total: la }], [b, { total: lb }]) =>
+						lb - la || a.localeCompare(b)
+					)
+					.forEach(([channel, data]) => {
+						const newChannel = channelTemplate.cloneNode(true);
+						newChannel.classList.remove('template');
+						newChannel.classList.remove('init');
+						const name = parseChannel(channel, data.level);
 
-					newUser.querySelector('h2').innerText = data[1];
-					userList.appendChild(newUser);
-				});
+						newChannel.dataset.id = channel;
+						newChannel.querySelector('h1').innerText = name;
 
-			Object.entries(channels)
-				.sort(([a, { total: la }], [b, { total: lb }]) =>
-					lb - la || a.localeCompare(b)
-				)
-				.forEach(([channel, data]) => {
-					const newChannel = channelTemplate.cloneNode(true);
-					newChannel.classList.remove('template');
-					const name = parseChannel(channel, data.level);
+						const readLevel = newChannel.querySelector('.num p[data-name="read"]');
+						const writeLevel = newChannel.querySelector('.num p[data-name="write"]');
+						readLevel.classList = `lvl${data.read || 0}`;
+						writeLevel.classList = `lvl${data.write || 0}`;
+						readLevel.innerText = data.read;
+						writeLevel.innerText = data.write;
 
-					newChannel.dataset.id = channel;
-					newChannel.querySelector('h1').innerText = name;
-
-					const readLevel = newChannel.querySelector('.num p[data-name="read"]');
-					const writeLevel = newChannel.querySelector('.num p[data-name="write"]');
-					readLevel.classList = `lvl${data.read || 0}`;
-					writeLevel.classList = `lvl${data.write || 0}`;
-					readLevel.innerText = data.read;
-					writeLevel.innerText = data.write;
-
-					newChannel.querySelector('h2').innerText = data.total;
-					newChannel.querySelector('button[data-name="filter"]').classList = `btn action${data.filter ? 1 : 2}`;
-					channelList.appendChild(newChannel);
-				});
+						newChannel.querySelector('h2').innerText = data.total;
+						const filter = newChannel.querySelector('button[data-name="filter"]');
+						filter.classList = `btn action${data.filter ? 1 : 2}`;
+						filter.dataset.value = data.filter ? 1 : 0;
+						channelList.appendChild(newChannel);
+					});
+			}
 		}
 
 		function list(id) {
@@ -1228,18 +1236,112 @@ body {
 
 
 		function euNew() {
-			showAlert('Test', _euNew, false, { u: 'Username', p: 'Password', l: 'Level' });
+			showAlert('New User', async (data) => {
+				if (!(data.u && data.p && data.l && !isNaN(parseInt(data.l)))) {
+					showError('Client Error:', 'Missing params');
+					return;
+				}
+
+				await send(`/dev/u/new/${data.u}`, {
+					'password': data.p,
+					'level': parseInt(data.l)
+				});
+				init(true, false);
+			}, false, { u: 'Username', p: 'Password', l: 'Level' });
 		}
-		function _euNew(data) {
-			if (!(data.u && data.p && data.l && parseInt(data.l))) {
-				showError('Client Error:', 'Missing params');
-				return;
-			}
+		async function euLevel(e, delta) {
+			const user = e.parentElement.parentElement.dataset.id;
+			const level = e.parentElement.querySelector('p');
+			const updated = parseInt(level.innerText) + parseInt(delta);
 
-			
+			level.innerText = updated;
+			await send(`/dev/u/edit/${user}`, {
+				level: updated
+			});
+			init(true, false);
+		}
+		function euLogout(e) {
+			const user = e.parentElement.dataset.id;
+			send(`/dev/u/logout/${user}`);
+		}
+		function euPassword(e) {
+			const user = e.parentElement.dataset.id;
+			showAlert('New Password', data => {
+				if (!data.p) {
+					showError('Client Error:', 'Missing params');
+					return;
+				}
+				send(`/dev/u/password/${user}`, { 'password': data.p });
+			}, false, { p: 'Password' });
+		}
+		function euDelete(e) {
+			showAlert('Confirm Deletion', async () => {
+				const user = e.parentElement.dataset.id;
+				await send(`/dev/u/delete/${user}`);
+				init(true, false);
+			}, true);
 		}
 
+		function ecNew() {
+			showAlert('New Channel', async (data) => {
+				if (!(
+					data.c &&
+					data.l && !isNaN(parseInt(data.l)) &&
+					data.r && !isNaN(parseInt(data.r)) &&
+					data.w && !isNaN(parseInt(data.w)) &&
+					data.f && !isNaN(parseInt(data.f))
+				)) {
+					showError('Client Error:', 'Missing params');
+					return;
+				}
 
+				await send(`/dev/c/new/${data.c}`, {
+					level: parseInt(data.l),
+					read: parseInt(data.r),
+					write: parseInt(data.w),
+					filter: parseInt(data.f) !== 0
+				});
+				init(false, true);
+			}, false, { c: 'Channel', l: 'Level', r: 'Read', w: 'Write', f: 'Filter' });
+		}
+		async function ecLevel(e, mode, delta) {
+			const m = mode ? 'write' : 'read';
+			const channel = e.parentElement.parentElement.dataset.id;
+			const level = e.parentElement.querySelector(`p[data-name="${m}"]`);
+			const updated = parseInt(level.innerText) + parseInt(delta);
+
+			level.innerText = updated;
+			await send(`/dev/c/edit/${channel}`, { edits: {
+				[m]: updated
+			}});
+			init(false, true);
+		}
+		async function ecFilter(e) {
+			const channel = e.parentElement.dataset.id;
+			const filter = e.dataset.value !== '0';
+
+			await send(`/dev/c/edit/${channel}`, { edits: {
+				filter: !filter
+			}});
+			init(false, true);
+		}
+		function ecNuke(e) {
+			const channel = e.parentElement.dataset.id;
+			send(`/dev/c/nuke/${channel}`);
+		}
+		function ecNuke(e) {
+			showAlert('Confirm Nuke', () => {
+				const channel = e.parentElement.dataset.id;
+				send(`/dev/c/nuke/${channel}`);
+			}, true);
+		}
+		function ecDelete(e) {
+			showAlert('Confirm Deletion', async () => {
+				const channel = e.parentElement.dataset.id;
+				await send(`/dev/c/delete/${channel}`);
+				init(false, true);
+			}, true);
+		}
 
 		if (getUser(true)) init();
 	</script>
