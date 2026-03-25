@@ -1332,7 +1332,7 @@ body {
 		function ecNuke(e) {
 			showAlert('Confirm Nuke', () => {
 				const channel = e.parentElement.dataset.id;
-				send(`/dev/c/nuke/${channel}`);
+				send(`/mod/nuke/${channel}`);
 			}, true);
 		}
 		function ecDelete(e) {
