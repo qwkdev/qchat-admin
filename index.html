@@ -8,8 +8,19 @@
 	<style>
 :root {
 	--u: 1.8vw;
+
 	--c: #30f;
 	--c2: #90f;
+
+	--l41: #02d;
+	--l42: #0cf;
+
+	--l31: #050;
+	--l32: #8f8;
+
+	--l21: #f80;
+	--l22: #ff0;
+	
 	--action: #205;
 	--action2: #2a006c;
 	--action3: #30a;
@@ -252,22 +263,19 @@ body {
 	left: 0;
 	pointer-events: auto;
 }
-.lvl4 {
+.lvl5 {
 	background: linear-gradient(to bottom, var(--c) 20%, var(--c2));
-	background-clip: text;
-	-webkit-background-clip: text;
-	color: transparent !important;
-	-webkit-text-fill-color: transparent !important;
+}
+.lvl4 {
+	background: linear-gradient(to bottom, var(--l41) 20%, var(--l42));
 }
 .lvl3 {
-	background: linear-gradient(to bottom, #02d 20%, #0cf);
-	background-clip: text;
-	-webkit-background-clip: text;
-	color: transparent !important;
-	-webkit-text-fill-color: transparent !important;
+	background: linear-gradient(to bottom, var(--l31) 20%, var(--l32));
 }
 .lvl2 {
-	background: linear-gradient(to bottom, #f80 20%, #ff0);
+	background: linear-gradient(to bottom, var(--l21) 20%, var(--l22));
+}
+.lvl5, .lvl4, .lvl3, .lvl2 {
 	background-clip: text;
 	-webkit-background-clip: text;
 	color: transparent !important;
@@ -827,14 +835,14 @@ body {
 		<button onclick="burger(1)">
 			<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g><path d="M4 6H20M4 12H20M4 18H20" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></g></svg>
 		</button>
-		<p class="logo"><b class="lvl4">Q</b>Chat</p>
+		<p class="logo"><b class="lvl5">Q</b>Chat</p>
 		<div class="right">
 			<p id="channel">[admin]</p>
 		</div>
 	</div>
 	<div id="menu-wrapper" data-active="0">
 		<div id="menu">
-			<p class="logo"><b class="lvl4">Q</b>Chat</p>
+			<p class="logo"><b class="lvl5">Q</b>Chat</p>
 
 			<div id="login-section">
 				<input type="text" placeholder="Username" id="login-user" oninput="format(this)">
