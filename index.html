@@ -739,17 +739,16 @@ body {
 	grid-template-columns: auto auto;
 	align-items: center;
 	gap: calc(1 * var(--u));
-
-	p {
-		margin: 0;
-		font-size: calc(2 * var(--u));
-		font-weight: 500;
-		font-family: Arial;
-		color: #fff;
-	}
-	&[hidden] {
-		display: none;
-	}
+}
+#alert #alert-box #alert-input p {
+	margin: 0;
+	font-size: calc(2 * var(--u));
+	font-weight: 500;
+	font-family: Arial;
+	color: #fff;
+}
+#alert #alert-box #alert-input[hidden] {
+	display: none;
 }
 #alert #alert-box input {
 	width: 100%;
@@ -764,14 +763,13 @@ body {
 	font-family: monospace;
 	font-size: calc(2 * var(--u));
 	color: #fff;
-
-	&:focus {
-		outline: none;
-		border-color: var(--c);
-	}
-	&::selection {
-		background: var(--c);
-	}
+}
+#alert #alert-box input:focus {
+	outline: none;
+	border-color: var(--c);
+}
+#alert #alert-box input::selection {
+	background: var(--c);
 }
 #alert #alert-box #alert-options {
 	display: flex;
@@ -868,13 +866,13 @@ body {
 		</div>
 		<div id="lists">
 			<div id="users">
-				<div class="init item">
+				<!-- <div class="init item">
 					<div class="div"></div>
 					<button class="btn action new" onclick="euNew()">Create New</button>
 					<div class="div"></div>
-				</div>
+				</div> -->
 				<div class="init item template">
-					<h1></h2>
+					<h1></h1>
 					<span>|</span>
 					<div class="num">
 						<button class="btn" onclick="euLevel(this, -1)">-</button>
@@ -882,12 +880,19 @@ body {
 						<button class="btn" onclick="euLevel(this, 1)">+</button>
 					</div>
 					<span>|</span>
-					<h2></h2>
+					<h2 data-name="msg"></h2>
+					<span>|</span>
+					<h2 data-name="email"></h2>
+					<span>|</span>
+					<h2 data-name="timeout"></h2>
 					<span>|</span>
 					<div class="div"></div>
 					<span>|</span>
+					<button class="btn action2" onclick="euTimeout(this)">T</button>
 					<button class="btn action2" onclick="euLogout(this)">RS</button>
 					<button class="btn action" onclick="euPassword(this)">&Delta;PW</button>
+					<span>|</span>
+					<button class="btn action2" data-name="ban" data-value="" onclick="euBan(this)">B</button>
 					<button class="btn action2" onclick="euDelete(this)">Del</button>
 				</div>
 			</div>
@@ -952,12 +957,22 @@ body {
 			return text.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, MAX_NAME_LENGTH);
 		}
 
-		const SERVER = 'https://qchat.pythonanywhere.com';
+		// const SERVER = 'https://qchat.pythonanywhere.com';
+		const SERVER = 'http://127.0.0.1:5000';
 
 		let session = {
+			auth: null,
 			user: null,
 			level: 0
-		};
+		}
+
+		function saveSession() {
+			if (session.auth) localStorage.setItem('token', session.auth);
+			else localStorage.removeItem('token');
+
+			if (session.user) localStorage.setItem('user', session.user);
+			else localStorage.removeItem('user');
+		}
 
 		const loginSection = document.getElementById('login-section');
 		const menuEle = {
@@ -988,53 +1003,57 @@ body {
 				init();
 			}
 		}
+
+		function loginUser(data) {
+			session.auth = data.auth || null;
+			session.user = data.user || null;
+			session.level = data.level || 0;
+			saveSession();
+			
+			menuEle.password.value = '';
+			fixMenuSections();
+			showError();
+		}
+
 		async function login() {
 			if (!menuEle.user.value || !menuEle.password.value) return;
 
-			format(menuEle.user);
-
 			await fetch(`${SERVER}/login`, {
 				method: 'POST',
-				credentials: 'include',
 				headers: {
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({
-					user: menuEle.user.value.startsWith('@') ? menuEle.user.value : '@' + menuEle.user.value,
+					user: menuEle.user.value.includes('@') ? menuEle.user.value : '@' + menuEle.user.value,
 					password: menuEle.password.value
 				})
 			})
 				.then(resp => resp.json())
 				.then(data => {
-					if (data.success === true) {
-						session.user = data.user || null;
-						session.level = data.level || 0;
-						
-						menuEle.password.value = '';
-						fixMenuSections();
-					} else showError('Client Error:', data.error);
+					if (data.success === true) loginUser(data)
+					else showError('Client Error:', data.error);
 				})
 				.catch(e => showError('Network Error:', e));
 		}
 		async function logout() {
 			await fetch(`${SERVER}/logout`, {
 				method: 'POST',
-				credentials: 'include',
 				headers: {
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({
+					auth: session.auth,
 					user: getUser()
 				})
 			})
 				.then(resp => resp.json())
 				.then(data => {
-					if (data.success === true) {
-						session.user = null;
-						session.level = 0;
+					if (data.success !== true) showError('Client Error:', data.error);
 
-						fixMenuSections();
-					} else showError('Client Error:', data.error);
+					session.user = null;
+					session.level = 0;
+					saveSession();
+					fixMenuSections();
 				})
 				.catch(e => showError('Network Error:', e));
 		}
@@ -1064,9 +1083,11 @@ body {
 			} else return resp;
 		}
 
+		let hideError;
 		function showError(type=null, text=null) {
 			if (text === null) {
 				errorWall.hidden = true;
+				clearTimeout(hideError);
 			} else {
 				errorWall.querySelector('p').innerHTML = '';
 				errorWall.querySelector('p').append(
@@ -1074,10 +1095,12 @@ body {
 					document.createElement('br'),
 					document.createTextNode(text)
 				);
-				errorWall.hidden = false;
-				burger(0);
-
-				setTimeout(showError, 3000);
+				if (errorWall.dataset.value != type + text || errorWall.hidden) {
+					errorWall.dataset.value = type + text;
+					errorWall.hidden = false;
+					burger(0);
+				}
+				hideError = setTimeout(() => showError(), 3000);
 			}
 		}
 
@@ -1154,18 +1177,17 @@ body {
 			const user = getUser(true);
 			const resp = await fetch(`${SERVER}${path}`, {
 				method: 'POST',
-				credentials: 'include',
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({ user, ...(body ?? {}) })
+				body: JSON.stringify({ auth: session.auth, user, ...(body ?? {}) })
 			})
 				.then(resp => resp.json())
 				.then(data => {
 					if (data.success !== true) {
 						showError('Client Error:', data.error);
 					} else {
-						showAlert('Sent!', true);
+						// showAlert('Sent!', true);
 						console.log(data);
 					}
 
@@ -1185,9 +1207,10 @@ body {
 				const users = await send('/dev/u');
 			
 				userList.querySelectorAll('#users > :not(.init)').forEach(e => e.remove());
+				console.log(users);
 				Object.entries(users)
-					.sort(([a, [la]], [b, [lb]]) =>
-						lb - la || a.localeCompare(b)
+					.sort(([uA, [, lA]], [uB, [, lB]]) =>
+						lB - lA || uA.localeCompare(uB)
 					)
 					.forEach(([user, data]) => {
 						const newUser = userTemplate.cloneNode(true);
@@ -1197,12 +1220,19 @@ body {
 
 						const name = newUser.querySelector('h1');
 						const level = newUser.querySelector('.num p');
-						name.classList = `lvl${data[0] || 0}`;
-						level.classList = `lvl${data[0] || 0}`;
+						name.classList = `lvl${data[1] || 0}`;
+						level.classList = `lvl${data[1] || 0}`;
 						name.innerText = user;
-						level.innerText = data[0];
+						level.innerText = data[1];
 
-						newUser.querySelector('h2').innerText = data[1];
+						newUser.querySelector('h2[data-name="msg"]').innerText = data[2];
+						newUser.querySelector('h2[data-name="email"]').innerText = data[0];
+						newUser.querySelector('h2[data-name="timeout"]').innerText = data[4];
+
+						const ban = newUser.querySelector('button[data-name="ban"]');
+						ban.classList = `btn action${data[3] ? 2 : 1}`;
+						ban.dataset.value = data[3] ? 1 : 0;
+
 						userList.appendChild(newUser);
 					});
 			}
@@ -1243,29 +1273,46 @@ body {
 		}
 
 
-		function euNew() {
-			showAlert('New User', async (data) => {
-				if (!(data.u && data.p && data.l && !isNaN(parseInt(data.l)))) {
-					showError('Client Error:', 'Missing params');
-					return;
-				}
+		// function euNew() {
+		// 	showAlert('New User', async (data) => {
+		// 		if (!(data.u && data.p && data.l && !isNaN(parseInt(data.l)))) {
+		// 			showError('Client Error:', 'Missing params');
+		// 			return;
+		// 		}
 
-				await send(`/dev/u/new/${data.u}`, {
-					'password': data.p,
-					'level': parseInt(data.l)
-				});
-				init(true, false);
-			}, false, { u: 'Username', p: 'Password', l: 'Level' });
-		}
+		// 		await send(`/dev/u/new/${data.u}`, {
+		// 			'password': data.p,
+		// 			'level': parseInt(data.l)
+		// 		});
+		// 		init(true, false);
+		// 	}, false, { u: 'Username', p: 'Password', l: 'Level' });
+		// }
 		async function euLevel(e, delta) {
 			const user = e.parentElement.parentElement.dataset.id;
 			const level = e.parentElement.querySelector('p');
 			const updated = parseInt(level.innerText) + parseInt(delta);
 
 			level.innerText = updated;
-			await send(`/dev/u/edit/${user}`, {
-				level: updated
-			});
+			await send(`/dev/u/edit/${user}`, { level: updated });
+			init(true, false);
+		}
+		async function euTimeout(e) {
+			const user = e.parentElement.dataset.id;
+			showAlert('Set Timeout', async data => {
+				if (data.d === null || typeof data.d === 'undefined') {
+					showError('Client Error:', 'Missing params');
+					return;
+				}
+				console.log(parseInt(data.d) * 60)
+				await send(`/dev/u/edit/${user}`, { timeout: parseInt(data.d) * 60 });
+				init(true, false);
+			}, false, { d: 'Mins' });
+		}
+		async function euBan(e) {
+			const user = e.parentElement.dataset.id;
+			const ban = e.dataset.value !== '0';
+
+			await send(`/dev/u/edit/${user}`, { ban: !ban });
 			init(true, false);
 		}
 		function euLogout(e) {
@@ -1279,9 +1326,10 @@ body {
 					showError('Client Error:', 'Missing params');
 					return;
 				}
-				send(`/dev/u/password/${user}`, { 'password': data.p });
+				send(`/dev/u/edit/${user}`, { password: data.p });
 			}, false, { p: 'Password' });
 		}
+
 		function euDelete(e) {
 			showAlert('Confirm Deletion', async () => {
 				const user = e.parentElement.dataset.id;
@@ -1334,10 +1382,6 @@ body {
 			init(false, true);
 		}
 		function ecNuke(e) {
-			const channel = e.parentElement.dataset.id;
-			send(`/dev/c/nuke/${channel}`);
-		}
-		function ecNuke(e) {
 			showAlert('Confirm Nuke', () => {
 				const channel = e.parentElement.dataset.id;
 				send(`/mod/nuke/${channel}`);
@@ -1351,7 +1395,29 @@ body {
 			}, true);
 		}
 
-		if (getUser(true)) init();
+		if (localStorage.getItem('user') && localStorage.getItem('token')) {
+			const tempUser = localStorage.getItem('user');
+			const tempAuth = localStorage.getItem('token');
+			fetch(`${SERVER}/check`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					auth: tempAuth,
+					user: '@' + tempUser
+				})
+			})
+				.then(resp => resp.json())
+				.then(data => {
+					if (data.success === true) loginUser(data)
+					else showError('Client Error:', data.error);
+				})
+				.catch(e => showError('Network Error:', e))
+				.finally(() => {
+					if (getUser(true)) init();
+				})
+		} else if (getUser(true)) init();
 	</script>
 </body>
 </html>
