@@ -850,7 +850,7 @@ body {
 			<div id="login-section">
 				<input type="text" placeholder="Username" id="login-user" oninput="format(this)">
 				<input type="password" placeholder="Password" id="login-password">
-				<button onclick="login()">Login</button>
+				<button onclick="login()">Log In</button>
 			</div>
 			<div id="logout-section" hidden>
 				<p>Signed in as:</p>
@@ -1084,7 +1084,7 @@ body {
 			if (force && !resp) {
 				burger(1);
 				menuEle.user.focus();
-				showAlert('Please login');
+				showAlert('Please log in');
 			} else return resp;
 		}
 
