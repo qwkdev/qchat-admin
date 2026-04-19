@@ -485,6 +485,8 @@ body {
 		top: calc(6.25 * var(--u));
 		left: 0;
 		width: 200vw;
+		height: calc(100vh - (15.5 * var(--u)));
+		height: calc(100dvh - (15.5 * var(--u)));
 		display: flex;
 		transition: .5s;
 	}
@@ -492,8 +494,7 @@ body {
 		width: 100vw;
 		padding: 0 var(--chat-margin);
 		height: 100%;
-		overflow-x: hidden;
-		overflow-y: scroll;
+		overflow: scroll;
 		display: flex;
 		flex-direction: column;
 		gap: calc(1.25 * var(--u));
@@ -506,7 +507,8 @@ body {
 		}
 	}
 	.item {
-		width: 100%;
+		width: min-content;
+		min-width: 100%;
 		box-sizing: border-box;
 		background: var(--fg);
 		border: var(--border-width) solid var(--border);
@@ -518,6 +520,9 @@ body {
 		padding: calc(.5 * var(--u)) calc(1 * var(--u));
 		gap: calc(.5 * var(--u));
 
+		&:last-child {
+			margin-bottom: calc(1 * var(--u));
+		}
 		.div {
 			flex-grow: 1;
 		}
